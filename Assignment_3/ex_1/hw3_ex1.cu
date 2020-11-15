@@ -176,10 +176,20 @@ void cpu_grayscale(int width, int height, float *image, float *image_out)
  */
 __global__ void gpu_grayscale(int width, int height, float *image, float *image_out)
 {
-    ////////////////
-    // TO-DO #4.2 /////////////////////////////////////////////
-    // Implement the GPU version of the grayscale conversion //
-    ///////////////////////////////////////////////////////////
+    const unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
+    const unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
+    const unsigned int i = y * width + x;
+
+    if (i >= width * height) 
+    {
+        return;
+    }
+
+    // Convert to grayscale following the "luminance" model
+    float *pixel = &image[i * 3];
+    image_out[i] = pixel[0] * 0.0722f + // B
+                   pixel[1] * 0.7152f + // G
+                   pixel[2] * 0.2126f;  // R
 }
 
 /**
@@ -328,7 +338,9 @@ int main(int argc, char **argv)
                       ((bitmap.height + (BLOCK_SIZE - 1)) / BLOCK_SIZE));
     
     printf("Image opened (width=%d height=%d).\n", bitmap.width, bitmap.height);
-    
+    printf("%d,%d", grid.x, grid.y);
+    printf("%d,%d", block.x, block.y);
+
     // Allocate the intermediate image buffers for each step
     for (int i = 0; i < 2; i++)
     {
@@ -353,13 +365,12 @@ int main(int argc, char **argv)
         
         // Launch the GPU version
         gettimeofday(&t[0], NULL);
-        // gpu_grayscale<<<grid, block>>>(bitmap.width, bitmap.height,
-        //                                d_bitmap, d_image_out[0]);
+        gpu_grayscale<<<grid, block>>>(bitmap.width, bitmap.height,
+                                       d_bitmap, d_image_out[0]);
         
-        // cudaMemcpy(image_out[0], d_image_out[0],
-        //            image_size * sizeof(float), cudaMemcpyDeviceToHost);
+        cudaMemcpy(image_out[0], d_image_out[0],
+                   image_size * sizeof(float), cudaMemcpyDeviceToHost);
         gettimeofday(&t[1], NULL);
-        
         elapsed[1] = get_elapsed(t[0], t[1]);
         
         // Store the result image in grayscale
