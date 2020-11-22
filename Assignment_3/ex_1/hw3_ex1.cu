@@ -347,6 +347,8 @@ void cpu_sobel(int width, int height, float *image, float *image_out)
  */
 __global__ void gpu_sobel(int width, int height, float *image, float *image_out)
 {
+    __shared__ float sh_block[BLOCK_SIZE_SH * BLOCK_SIZE_SH];
+
     float sobel_x[9] = { 1.0f,  0.0f, -1.0f,
                          2.0f,  0.0f, -2.0f,
                          1.0f,  0.0f, -1.0f };
@@ -361,9 +363,42 @@ __global__ void gpu_sobel(int width, int height, float *image, float *image_out)
     {
         int offset_t = index_y * width + index_x;
         int offset   = (index_y + 1) * width + (index_x + 1);
+
+        // Compute index within shared memory.
+        int index_sh = threadIdx.y * BLOCK_SIZE_SH + threadIdx.x;
+
+        // Copy pixel and synchronize threads.
+        sh_block[index_sh] = image[offset_t];
+        __syncthreads();
+
+        // Right side.
+        if (threadIdx.x == blockDim.x - 2 || threadIdx.x == blockDim.x - 1)
+        {
+            sh_block[index_sh + 2] = image[offset_t + 2];
+        }
+
+        // Bottom side.
+        if (threadIdx.y == blockDim.y - 2 || threadIdx.y == blockDim.y - 1)
+        {
+            sh_block[index_sh + BLOCK_SIZE_SH + BLOCK_SIZE_SH] = image[offset_t + width + width];
+        }
+
+        // Bottom-right corner.
+        if ((threadIdx.x == blockDim.x - 2 && threadIdx.y == blockDim.y - 2) ||
+            (threadIdx.x == blockDim.x - 1 && threadIdx.y == blockDim.y - 1))
+        {
+            sh_block[index_sh + BLOCK_SIZE_SH + 2] = image[offset_t + width + 2];
+            sh_block[index_sh + BLOCK_SIZE_SH + BLOCK_SIZE_SH + 1] = image[offset_t + width + width + 1];
+            sh_block[index_sh + BLOCK_SIZE_SH + BLOCK_SIZE_SH + 2] = image[offset_t + width + width + 2];
+        }
+        __syncthreads();
         
-        float gx = gpu_applyFilter(&image[offset_t], width, sobel_x, 3);
-        float gy = gpu_applyFilter(&image[offset_t], width, sobel_y, 3);
+        float gx = gpu_applyFilter(&sh_block[index_sh],
+                                            BLOCK_SIZE_SH, // Stride is "width" of shared memory. 
+                                            sobel_x, 3);
+        float gy = gpu_applyFilter(&sh_block[index_sh],
+                                            BLOCK_SIZE_SH, // Stride is "width" of shared memory.
+                                            sobel_y, 3);
 
         image_out[offset] = sqrtf(gx * gx + gy * gy);
     }
