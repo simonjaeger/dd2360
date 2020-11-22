@@ -446,10 +446,10 @@ int main(int argc, char **argv)
     
     // Step 1: Convert to grayscale
     {
-        // // Launch the CPU version
-        // gettimeofday(&t[0], NULL);
-        // cpu_grayscale(bitmap.width, bitmap.height, bitmap.data, image_out[0]);
-        // gettimeofday(&t[1], NULL);
+        // Launch the CPU version
+        gettimeofday(&t[0], NULL);
+        cpu_grayscale(bitmap.width, bitmap.height, bitmap.data, image_out[0]);
+        gettimeofday(&t[1], NULL);
         
         elapsed[0] = get_elapsed(t[0], t[1]);
         
@@ -469,10 +469,10 @@ int main(int argc, char **argv)
     
     // Step 2: Apply a 3x3 Gaussian filter
     {
-        // // Launch the CPU version
-        // gettimeofday(&t[0], NULL);
-        // cpu_gaussian(bitmap.width, bitmap.height, image_out[0], image_out[1]);
-        // gettimeofday(&t[1], NULL);
+        // Launch the CPU version
+        gettimeofday(&t[0], NULL);
+        cpu_gaussian(bitmap.width, bitmap.height, image_out[0], image_out[1]);
+        gettimeofday(&t[1], NULL);
         
         elapsed[0] = get_elapsed(t[0], t[1]);
         
@@ -493,10 +493,10 @@ int main(int argc, char **argv)
     
     // Step 3: Apply a Sobel filter
     {
-        // // Launch the CPU version
-        // gettimeofday(&t[0], NULL);
-        // cpu_sobel(bitmap.width, bitmap.height, image_out[1], image_out[0]);
-        // gettimeofday(&t[1], NULL);
+        // Launch the CPU version
+        gettimeofday(&t[0], NULL);
+        cpu_sobel(bitmap.width, bitmap.height, image_out[1], image_out[0]);
+        gettimeofday(&t[1], NULL);
         
         elapsed[0] = get_elapsed(t[0], t[1]);
         
