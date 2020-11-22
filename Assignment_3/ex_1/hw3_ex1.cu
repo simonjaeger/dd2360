@@ -5,7 +5,8 @@
 #include <sys/time.h>
 
 #define BLOCK_SIZE  16
-#define HEADER_SIZE 122
+#define HEADER_SIZE 138
+#define BLOCK_SIZE_SH 18
 
 typedef unsigned char BYTE;
 
@@ -263,20 +264,52 @@ void cpu_gaussian(int width, int height, float *image, float *image_out)
  */
 __global__ void gpu_gaussian(int width, int height, float *image, float *image_out)
 {
+    __shared__ float sh_block[BLOCK_SIZE_SH * BLOCK_SIZE_SH];
+
     float gaussian[9] = { 1.0f / 16.0f, 2.0f / 16.0f, 1.0f / 16.0f,
                           2.0f / 16.0f, 4.0f / 16.0f, 2.0f / 16.0f,
                           1.0f / 16.0f, 2.0f / 16.0f, 1.0f / 16.0f };
     
     int index_x = blockIdx.x * blockDim.x + threadIdx.x;
     int index_y = blockIdx.y * blockDim.y + threadIdx.y;
-    
+
     if (index_x < (width - 2) && index_y < (height - 2))
     {
         int offset_t = index_y * width + index_x;
         int offset   = (index_y + 1) * width + (index_x + 1);
-        
-        image_out[offset] = gpu_applyFilter(&image[offset_t],
-                                            width, gaussian, 3);
+
+        // Compute index within shared memory.
+        int index_sh = threadIdx.y * BLOCK_SIZE_SH + threadIdx.x;
+
+        // Copy pixel and synchronize threads.
+        sh_block[index_sh] = image[offset_t];
+        __syncthreads();
+
+        // Right side.
+        if (threadIdx.x == blockDim.x - 2 || threadIdx.x == blockDim.x - 1)
+        {
+            sh_block[index_sh + 2] = image[offset_t + 2];
+        }
+
+        // Bottom side.
+        if (threadIdx.y == blockDim.y - 2 || threadIdx.y == blockDim.y - 1)
+        {
+            sh_block[index_sh + BLOCK_SIZE_SH + BLOCK_SIZE_SH] = image[offset_t + width + width];
+        }
+
+        // Bottom-right corner.
+        if ((threadIdx.x == blockDim.x - 2 && threadIdx.y == blockDim.y - 2) ||
+            (threadIdx.x == blockDim.x - 1 && threadIdx.y == blockDim.y - 1))
+        {
+            sh_block[index_sh + BLOCK_SIZE_SH + 2] = image[offset_t + width + 2];
+            sh_block[index_sh + BLOCK_SIZE_SH + BLOCK_SIZE_SH + 1] = image[offset_t + width + width + 1];
+            sh_block[index_sh + BLOCK_SIZE_SH + BLOCK_SIZE_SH + 2] = image[offset_t + width + width + 2];
+        }
+        __syncthreads();
+
+        image_out[offset] = gpu_applyFilter(&sh_block[index_sh],
+                                            BLOCK_SIZE_SH, // Stride is "width" of shared memory.
+                                            gaussian, 3);
     }
 }
 
@@ -378,10 +411,10 @@ int main(int argc, char **argv)
     
     // Step 1: Convert to grayscale
     {
-        // Launch the CPU version
-        gettimeofday(&t[0], NULL);
-        cpu_grayscale(bitmap.width, bitmap.height, bitmap.data, image_out[0]);
-        gettimeofday(&t[1], NULL);
+        // // Launch the CPU version
+        // gettimeofday(&t[0], NULL);
+        // cpu_grayscale(bitmap.width, bitmap.height, bitmap.data, image_out[0]);
+        // gettimeofday(&t[1], NULL);
         
         elapsed[0] = get_elapsed(t[0], t[1]);
         
@@ -401,10 +434,10 @@ int main(int argc, char **argv)
     
     // Step 2: Apply a 3x3 Gaussian filter
     {
-        // Launch the CPU version
-        gettimeofday(&t[0], NULL);
-        cpu_gaussian(bitmap.width, bitmap.height, image_out[0], image_out[1]);
-        gettimeofday(&t[1], NULL);
+        // // Launch the CPU version
+        // gettimeofday(&t[0], NULL);
+        // cpu_gaussian(bitmap.width, bitmap.height, image_out[0], image_out[1]);
+        // gettimeofday(&t[1], NULL);
         
         elapsed[0] = get_elapsed(t[0], t[1]);
         
@@ -425,10 +458,10 @@ int main(int argc, char **argv)
     
     // Step 3: Apply a Sobel filter
     {
-        // Launch the CPU version
-        gettimeofday(&t[0], NULL);
-        cpu_sobel(bitmap.width, bitmap.height, image_out[1], image_out[0]);
-        gettimeofday(&t[1], NULL);
+        // // Launch the CPU version
+        // gettimeofday(&t[0], NULL);
+        // cpu_sobel(bitmap.width, bitmap.height, image_out[1], image_out[0]);
+        // gettimeofday(&t[1], NULL);
         
         elapsed[0] = get_elapsed(t[0], t[1]);
         
