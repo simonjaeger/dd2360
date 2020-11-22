@@ -285,19 +285,19 @@ __global__ void gpu_gaussian(int width, int height, float *image, float *image_o
         sh_block[index_sh] = image[offset_t];
         __syncthreads();
 
-        // Right side.
+        // Right edge (case 1).
         if (threadIdx.x == blockDim.x - 2 || threadIdx.x == blockDim.x - 1)
         {
             sh_block[index_sh + 2] = image[offset_t + 2];
         }
 
-        // Bottom side.
+        // Bottom edge (case 2).
         if (threadIdx.y == blockDim.y - 2 || threadIdx.y == blockDim.y - 1)
         {
             sh_block[index_sh + BLOCK_SIZE_SH + BLOCK_SIZE_SH] = image[offset_t + width + width];
         }
 
-        // Bottom-right corner.
+        // Bottom-right edge (case 3).
         if ((threadIdx.x == blockDim.x - 2 && threadIdx.y == blockDim.y - 2) ||
             (threadIdx.x == blockDim.x - 1 && threadIdx.y == blockDim.y - 1))
         {
@@ -371,19 +371,19 @@ __global__ void gpu_sobel(int width, int height, float *image, float *image_out)
         sh_block[index_sh] = image[offset_t];
         __syncthreads();
 
-        // Right side.
+        // Right edge (case 1).
         if (threadIdx.x == blockDim.x - 2 || threadIdx.x == blockDim.x - 1)
         {
             sh_block[index_sh + 2] = image[offset_t + 2];
         }
 
-        // Bottom side.
+        // Bottom edge (case 2).
         if (threadIdx.y == blockDim.y - 2 || threadIdx.y == blockDim.y - 1)
         {
             sh_block[index_sh + BLOCK_SIZE_SH + BLOCK_SIZE_SH] = image[offset_t + width + width];
         }
 
-        // Bottom-right corner.
+        // Bottom-right edge (case 3).
         if ((threadIdx.x == blockDim.x - 2 && threadIdx.y == blockDim.y - 2) ||
             (threadIdx.x == blockDim.x - 1 && threadIdx.y == blockDim.y - 1))
         {
