@@ -4,7 +4,8 @@
 #include <stdlib.h>
 #include <CL/cl.h>
 
-#define N_WORKITEMS 256
+// #define N_WORKITEMS 256
+#define N_WORKITEMS 4
 
 // This is a macro for checking the error variable.
 #define CHK_ERROR(err)   \
@@ -14,10 +15,13 @@
 // A errorCode to string converter (forward declaration)
 const char *clGetErrorString(int);
 
+  // "   size_t x_size = get_global_size(0);\n" 
+  // "   size_t idx = y;\n" 
 const char *mykernel = "kernel void helloWorld()"
   "{\n" 
-  "   size_t id = get_global_id(0);\n" 
-  "   printf(\"Hello world! My threadId is %d\\n\", id);\n"
+  "   unsigned int x = get_global_id(0);\n" 
+  "   unsigned int y = get_global_id(1);\n" 
+  "   printf(\"Hello world! My threadId is (%d, %d)\\n\", x, y);\n"
   "}"; //TODO: Write your kernel here
 
 int main(int argc, char *argv)
@@ -65,11 +69,13 @@ int main(int argc, char *argv)
   cl_kernel kernel = clCreateKernel(program, "helloWorld", &err);
   CHK_ERROR(err);
 
-  size_t n_workitem = N_WORKITEMS;
-  size_t workgroup_size = 1;
+  size_t n_workitem[] = {N_WORKITEMS, N_WORKITEMS};
+  size_t workgroup_size[] = {N_WORKITEMS, N_WORKITEMS};
+  // size_t n_workitem = N_WORKITEMS;
+  // size_t workgroup_size = 1;
 
   // Launch the kernel!
-  err = clEnqueueNDRangeKernel(cmd_queue, kernel, 1, NULL, &n_workitem, &workgroup_size, 0, NULL, NULL);
+  err = clEnqueueNDRangeKernel(cmd_queue, kernel, 2, NULL, &n_workitem[0], &workgroup_size[0], 0, NULL, NULL);
   CHK_ERROR(err);
 
   err = clFlush(cmd_queue);
