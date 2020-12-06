@@ -9,6 +9,16 @@
         "limits": "cpp",
         "*.tcc": "cpp",
         "cstdint": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "chrono": "c",
+        "compare": "c",
+        "concepts": "c",
+        "cstddef": "c",
+        "cwchar": "c",
+        "initializer_list": "c",
+        "ratio": "c",
+        "utility": "c",
+        "xstddef": "c",
+        "xtr1common": "c"
     }
 }

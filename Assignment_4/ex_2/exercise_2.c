@@ -13,7 +13,7 @@
 #define DELTA_EPOCH_IN_MICROSECS 11644473600000000ULL
 #endif
 
-#define ARRAY_SIZE 100000000
+#define ARRAY_SIZE 1000000
 #define BLOCK_SIZE 256
 
 #define MICROSECONDS(start, end) ((end.tv_sec - start.tv_sec) * 1000000LL + end.tv_usec - start.tv_usec)

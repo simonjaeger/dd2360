@@ -12,19 +12,19 @@
 // A errorCode to string converter (forward declaration)
 const char *clGetErrorString(int);
 
-const char *mykernel = "kernel void helloWorld()"
-  "{\n" 
-  "   unsigned int group_x = get_group_id(0);\n"
-  "   unsigned int group_y = get_group_id(1);\n"
-  "   unsigned int group_z = get_group_id(2);\n"
-  "   unsigned int global_x = get_global_id(1);\n"
-  "   unsigned int global_y = get_global_id(1);\n"
-  "   unsigned int global_z = get_global_id(2);\n"
-  "   unsigned int local_x = get_local_id(0);\n"
-  "   unsigned int local_y = get_local_id(1);\n"
-  "   unsigned int local_z = get_local_id(2);\n"
-  "   printf(\"Hello world! My groupId is (%d,%d,%d), globalId is (%d,%d,%d) and localId is (%d,%d,%d)\\n\", group_x, group_y, group_z, global_x, global_y, global_z, local_x, local_y, local_z);\n"
-  "}";
+const char *mykernel = "__kernel void helloWorld()"
+                       "{\n"
+                       "   unsigned int group_x = get_group_id(0);\n"
+                       "   unsigned int group_y = get_group_id(1);\n"
+                       "   unsigned int group_z = get_group_id(2);\n"
+                       "   unsigned int global_x = get_global_id(1);\n"
+                       "   unsigned int global_y = get_global_id(1);\n"
+                       "   unsigned int global_z = get_global_id(2);\n"
+                       "   unsigned int local_x = get_local_id(0);\n"
+                       "   unsigned int local_y = get_local_id(1);\n"
+                       "   unsigned int local_z = get_local_id(2);\n"
+                       "   printf(\"Hello world! My groupId is (%d,%d,%d), globalId is (%d,%d,%d) and localId is (%d,%d,%d)\\n\", group_x, group_y, group_z, global_x, global_y, global_z, local_x, local_y, local_z);\n"
+                       "}";
 
 int main(int argc, char *argv)
 {
