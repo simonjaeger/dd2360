@@ -12,14 +12,12 @@
 // A errorCode to string converter (forward declaration)
 const char *clGetErrorString(int);
 
-  // "   size_t x_size = get_global_size(0);\n" 
-  // "   size_t idx = y;\n" 
 const char *mykernel = "kernel void helloWorld()"
   "{\n" 
   "   unsigned int x = get_global_id(0);\n" 
   "   unsigned int y = get_global_id(1);\n" 
   "   printf(\"Hello world! My threadId is (%d, %d)\\n\", x, y);\n"
-  "}"; //TODO: Write your kernel here
+  "}";
 
 int main(int argc, char *argv)
 {
@@ -50,7 +48,7 @@ int main(int argc, char *argv)
   cl_command_queue cmd_queue = clCreateCommandQueue(context, device_list[0], 0, &err);
   CHK_ERROR(err);
 
-  /* Insert your own code here */
+  // Create program
   cl_program program = clCreateProgramWithSource(context, 1, (const char **)&mykernel, NULL, &err);
   CHK_ERROR(err);
 
