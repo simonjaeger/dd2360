@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <CL/cl.h>
 
-#define N_WORKITEMS 256
-
 // This is a macro for checking the error variable.
 #define CHK_ERROR(err)   \
   if (err != CL_SUCCESS) \
@@ -68,10 +66,8 @@ int main(int argc, char *argv)
   cl_kernel kernel = clCreateKernel(program, "helloWorld", &err);
   CHK_ERROR(err);
 
-  size_t n_workitem[] = {N_WORKITEMS, N_WORKITEMS};
-  size_t workgroup_size[] = {N_WORKITEMS, N_WORKITEMS};
-  // size_t n_workitem = N_WORKITEMS;
-  // size_t workgroup_size = 1;
+  size_t n_workitem[2] = {16, 16};
+  size_t workgroup_size[2] = {16, 16};
 
   // Launch the kernel!
   err = clEnqueueNDRangeKernel(cmd_queue, kernel, 2, NULL, &n_workitem[0], &workgroup_size[0], 0, NULL, NULL);
