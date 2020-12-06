@@ -4,8 +4,7 @@
 #include <stdlib.h>
 #include <CL/cl.h>
 
-// #define N_WORKITEMS 256
-#define N_WORKITEMS 4
+#define N_WORKITEMS 256
 
 // This is a macro for checking the error variable.
 #define CHK_ERROR(err)   \
